@@ -1,0 +1,306 @@
+esphome:
+  name: remotefancontroller
+  includes:
+    - remote_helper.h
+
+esp32:
+  board: lolin_s2_mini
+  framework:
+    type: esp-idf
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "yourKey"
+
+ota:
+  - platform: esphome
+    password: "yourPassword"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+remote_transmitter:
+  pin: GPIO12 # Change this accordingly
+  carrier_duty_percent: 100%
+
+globals:
+  # The unique identifier of the remote
+  - id: identifier_livroom
+    type: uint32_t
+    initial_value: "0xB6070" # Replace this accordingly
+    # The commands, static and common for all remotes
+  - id: button_all_off
+    type: uint8_t
+    initial_value: "0x3"
+  - id: button_light
+    type: uint8_t
+    initial_value: "0x4"
+  - id: button_fan1
+    type: uint8_t
+    initial_value: "0x8"
+  - id: button_fan2
+    type: uint8_t
+    initial_value: "0x9"
+  - id: button_fan3
+    type: uint8_t
+    initial_value: "0xE"
+  - id: button_fan4
+    type: uint8_t
+    initial_value: "0x5"
+  - id: button_fan5
+    type: uint8_t
+    initial_value: "0x7"
+  - id: button_fan6
+    type: uint8_t
+    initial_value: "0x6"
+  - id: button_fan_forward
+    type: uint8_t
+    initial_value: "0x2"
+  - id: button_fan_ok
+    type: uint8_t
+    initial_value: "0xA"
+  - id: button_fan_reverse
+    type: uint8_t
+    initial_value: "0x8"
+  - id: button_fan_off
+    type: uint8_t
+    initial_value: "0xB"
+    # Current index of the rolling code
+    # Living Room Fan
+  - id: all_off_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: light_onoff_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan1_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan2_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan3_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan4_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan5_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan6_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: forward_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan_ok_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: reverse_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+  - id: fan_off_index_livroom
+    type: int
+    restore_value: yes
+    initial_value: "0"
+    # Other state keeping
+  - id: livingroom_fanlight_state
+    type: bool
+    restore_value: yes
+    initial_value: "false"
+
+.remote_config: &remote_config
+  protocol:
+    inverted: false
+    zero: [1, 3]
+    one: [3, 1]
+    pulse_length: 279
+  repeat:
+    times: 15
+    wait_time: 0s
+
+button:
+  - platform: template
+    name: "LivingRoom FanAndLight Off"
+    id: "livingroom_fanandlight_off"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x74, 0x03, 0x12, 0x21, 0x30, 0x47, 0x56, 0x65};
+            return build_remote_code(id(identifier_livroom), id(button_all_off), rolling_codes, id(all_off_index_livroom));
+  - platform: template
+    name: "LivingRoom Light On/Off"
+    id: "livingroom_light_onoff"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x04, 0x15, 0x26, 0x37, 0x40, 0x51, 0x62, 0x73};
+            return build_remote_code(id(identifier_livroom), id(button_light), rolling_codes, id(light_onoff_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 1"
+    id: "livingroom_fan_1"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x2A, 0x3B, 0x4C, 0x5D, 0x6E, 0x7F, 0x08, 0x19};
+            return build_remote_code(id(identifier_livroom), id(button_fan1), rolling_codes, id(fan1_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 2"
+    id: "livingroom_fan_2"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x4D, 0x5C, 0x6F, 0x7E, 0x09, 0x18, 0x2B, 0x3A};
+            return build_remote_code(id(identifier_livroom), id(button_fan2), rolling_codes, id(fan2_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 3"
+    id: "livingroom_fan_3"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x0E, 0x1F, 0x2C, 0x3D, 0x4A, 0x5B, 0x68, 0x79};
+            return build_remote_code(id(identifier_livroom), id(button_fan3), rolling_codes, id(fan3_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 4"
+    id: "livingroom_fan_4"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x72, 0x05, 0x14, 0x27, 0x36, 0x41, 0x50, 0x63};
+            return build_remote_code(id(identifier_livroom), id(button_fan4), rolling_codes, id(fan4_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 5"
+    id: "livingroom_fan_5"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x8F, 0x9E, 0xAD, 0xBC, 0xCB, 0xDA, 0xE9, 0xF8};
+            return build_remote_code(id(identifier_livroom), id(button_fan5), rolling_codes, id(fan5_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan 6"
+    id: "livingroom_fan_6"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x17, 0x24, 0x35, 0x42, 0x53, 0x60, 0x71, 0x06};
+            return build_remote_code(id(identifier_livroom), id(button_fan6), rolling_codes, id(fan6_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan Forward"
+    id: "livingroom_fan_forward"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x31, 0x46, 0x57, 0x64, 0x75, 0x02, 0x13, 0x20};
+            return build_remote_code(id(identifier_livroom), id(button_fan_forward), rolling_codes, id(forward_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan Reverse"
+    id: "livingroom_fan_reverse"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0xF7, 0x80, 0x91, 0xA2, 0xB3, 0xC4, 0xD5, 0xE6};
+            return build_remote_code(id(identifier_livroom), id(button_fan_reverse), rolling_codes, id(reverse_index_livroom));
+  - platform: template
+    name: "LivingRoom Fan Off"
+    id: "livingroom_fan_off"
+    on_press:
+      - remote_transmitter.transmit_rc_switch_raw:
+          <<: *remote_config
+          code: !lambda |-
+            static const std::vector<uint8_t> rolling_codes = {0x5E, 0x6D, 0x7C, 0x0B, 0x1A, 0x29, 0x38, 0x4F};
+            return build_remote_code(id(identifier_livroom), id(button_fan_off), rolling_codes, id(fan_off_index_livroom));
+
+fan:
+  - platform: template
+    name: "LivingRoom Fan"
+    id: livingroom_fan
+    speed_count: 6
+    on_turn_on:
+      - button.press: livingroom_fan_1
+    on_turn_off:
+      - button.press: livingroom_fan_off
+    on_speed_set:
+      - if:
+          condition:
+            lambda: "return x == 1;"
+          then:
+            - button.press: livingroom_fan_1
+      - if:
+          condition:
+            lambda: "return x == 2;"
+          then:
+            - button.press: livingroom_fan_2
+      - if:
+          condition:
+            lambda: "return x == 3;"
+          then:
+            - button.press: livingroom_fan_3
+      - if:
+          condition:
+            lambda: "return x == 4;"
+          then:
+            - button.press: livingroom_fan_4
+      - if:
+          condition:
+            lambda: "return x == 5;"
+          then:
+            - button.press: livingroom_fan_5
+      - if:
+          condition:
+            lambda: "return x == 6;"
+          then:
+            - button.press: livingroom_fan_6
+
+binary_sensor:
+  - platform: template
+    id: livingroom_fanlight_state_sensor
+    lambda: |-
+      return id(livingroom_fanlight_state);
+
+switch:
+  - platform: template
+    name: "LivingRoom Fan Light"
+    id: livingroom_fanlight
+    optimistic: false
+    lambda: |-
+      return id(livingroom_fanlight_state);
+    turn_on_action:
+      - button.press: livingroom_light_onoff
+      - globals.set:
+          id: livingroom_fanlight_state
+          value: "true"
+    turn_off_action:
+      - button.press: livingroom_light_onoff
+      - globals.set:
+          id: livingroom_fanlight_state
+          value: "false"
+
+web_server:
+  port: 80
